@@ -1,0 +1,69 @@
+* rails 
+** intialize with postgresql
+** instal rspec
+rails g rspec:install
+** bootstrap 
+rails generate bootstrap:install less
+* emacs 
+** insert string in rectangle .. with spaces ident
+ C-x r t string <RET>
+    Replace rectangle contents with string on each line (string-rectangle). 
+
+* CJPROJECT
+** Starting the server
+*** production 
+ FACEBOOK_APP_ID=567995016569984 FACEBOOK_SECRET=215f28112d8b7114f0fcfeda7e91eaf3 rails s
+*** dev   
+  FACEBOOK_APP_ID=414012922038126 FACEBOOK_SECRET=64048f1ff611fd476b910057814dddb0 rails s
+** Heroku app
+   http://secure-atoll-3850.herokuapp.com/      
+** Precomile assets 
+RAILS_ENV=production bundle exec rake assets:precompile      
+      
+* postgress
+** First login as postges
+su - postgres
+** password for postgres
+  postgres
+** Crete new database
+CREATE USER onehand WITH PASSWORD '22003bpm'
+postgres-# CREATE DATABASE onehand_development;
+postgres-# CREATE DATABASE onehand_test;
+postgres-# GRANT ALL PRIVILEGES ON DATABASE onehand_development to onehand;
+postgres-# GRANT ALL PRIVILEGES ON DATABASE onehand_development to onehand;
+postgres-# GRANT ALL PRIVILEGES ON DATABASE onehand_test to onehand;
+postgres-# 
+*** Create unix user
+sudo useradd
+* FACEBOOK OMNIAUTH
+  add gem
+  add omniauth.rb to intializers
+** add to routes
+  get 'auth/:provider/callback', to: 'sessions#create'
+  get 'auth/failure', to: redirect('/')
+  get 'signout', to: 'sessions#destroy', as: 'signout'
+  copy session_controller
+** generate user model
+  rails g model user
+** adjust user model add methods
+  def self.current_game(user)
+    a =  Game.where(:user_id => user.to_s  ).first
+    if a 
+      return a.id
+    else
+      return nil
+    end 
+  end
+
+  def self.from_omniauth(auth)
+    where(auth.slice(:provider, :uid)).first_or_initialize.tap do |user|
+      user.provider = auth.provider
+      user.uid = auth.uid
+      user.name = auth.info.name
+      user.image = auth.info.image
+      user.location = auth.info.location
+      user.outh_token = auth.credentials.token
+      user.outh_expires_at = Time.at(auth.credentials.expires_at)
+      user.save!
+    end
+  end
